@@ -1,0 +1,97 @@
+cabal-version:      3.0
+name:               powchain
+version:            0.1.0.0
+license:            AGPL-3.0-or-later
+license-file:       LICENSE
+author:             daniel
+maintainer:         daniel.skarehag@gmail.com
+category:           Concurrency
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+
+common warnings
+    ghc-options: -Wall
+
+library
+    import:           warnings
+    exposed-modules:  Node
+                    , HTTP
+                    , Routes
+                    , Env
+                    , Chain
+                    , Ledger
+                    , Block
+                    , Transaction
+                    , Views
+                    
+    -- other-modules:
+    -- other-extensions:
+    build-depends:    base ^>=4.16.3.0
+                    , scotty
+                    , wai-middleware-static
+                    , blaze-html
+                    , blaze-markup
+                    , text
+                    , cryptonite
+                    , bytestring
+                    , utf8-string
+                    , aeson
+                    , wreq
+                    , http-client
+                    , http-types
+                    , directory
+                    , containers
+                    , time
+                    , mtl
+                    , async
+
+    hs-source-dirs:   src
+    default-language: GHC2021
+
+executable powchain
+    import:           warnings
+    main-is:          Main.hs
+    -- other-modules:
+    -- other-extensions:
+    build-depends:    base ^>=4.16.3.0
+                    , powchain
+                    , scotty
+                    , wai-middleware-static
+                    , blaze-html
+                    , blaze-markup
+                    , text
+                    , cryptonite
+                    , bytestring
+                    , aeson
+                    , wreq
+                    , http-client
+                    , http-types
+                    , directory
+                    , containers
+                    , time
+                    , mtl
+                    , optparse-applicative
+                    , async
+
+    hs-source-dirs:   app
+    default-language: GHC2021
+
+test-suite powchain-test
+    import:           warnings
+    default-language: GHC2021
+    -- other-modules:
+    -- other-extensions:
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Spec.hs
+    build-depends:    base ^>=4.16.3.0
+                    , powchain
+                    , mtl
+                    , scotty
+                    , wai
+                    , warp
+                    , hspec
+                    , hspec-wai
+                    , hspec-wai-json
+                    , aeson
+                    , containers
