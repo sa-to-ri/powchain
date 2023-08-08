@@ -5,16 +5,12 @@ module Node where
 import qualified Web.Scotty.Trans          as ScottyT
 import           Network.HTTP.Types.Status    (ok200, created201, mkStatus)
 
-import qualified Data.Aeson                as Aeson
 import qualified Data.Set                  as Set
 import           Data.Set                     (Set)
-import qualified Data.Text.Lazy            as Text
 import           Data.Text.Lazy               (Text)
 
-import           Control.Monad.IO.Class       (liftIO)
-
 import qualified HTTP                      as HTTP
-import           HTTP                         (RequestResult(..), Request(..))
+import           HTTP                         (RequestResult(..))
 import qualified Env                       as Env  
 import           Env                          (ServerAction)  
 import qualified Ledger                    as Ledger
@@ -74,15 +70,14 @@ addTransaction transaction = do
 --   removes the peer again, if the peer does not respond.
 addPeer :: Text -> ServerAction ()
 addPeer peer = do  
-  peers       <- Env.getPeers 
+  peers <- Env.getPeers 
   
   if (Set.member peer peers)
     then ScottyT.status ok200
     else do
       Env.addPeer peer
 
-      response <- registerAt (Text.unpack peer)
-
+      response <- HTTP.registerAt peer
       case response of
         Failure -> do
           Env.deletePeer peer
@@ -94,15 +89,7 @@ addPeer peer = do
 checkPeers :: ServerAction (Set (Text, RequestResult))
 checkPeers = do
   peers   <- Set.toList <$> Env.getPeers
-  checked <- liftIO . sequence $ map (checkHealth . Text.unpack) peers
+  checked <- traverse HTTP.checkHealth peers
   
   pure $ Set.fromList (zip peers checked)
-  where
-    checkHealth :: String -> IO RequestResult
-    checkHealth = HTTP.asyncRequest $ Get "/heartbeat"
-
-registerAt :: String -> ServerAction RequestResult
-registerAt peer = do
-  address <- Env.getNodeAddress
-  liftIO $ HTTP.asyncRequest (Post "/peers" (Aeson.encode address)) peer
 

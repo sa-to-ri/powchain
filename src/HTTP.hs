@@ -2,6 +2,7 @@ module HTTP where
 
 import qualified Data.Aeson               as Aeson
 import qualified Data.Text.Lazy           as Text
+import           Data.Text.Lazy              (Text)
 import           Data.ByteString.Lazy        (ByteString)
 import           Data.Foldable               (traverse_)
 
@@ -62,4 +63,12 @@ broadcastTransaction transaction = broadcast $ Post "/transactions" (Aeson.encod
 -- | Sends a request to update the chain to all known peers.
 broadcastChain :: Chain -> ServerAction ()
 broadcastChain chain = broadcast $ Put "/chain" (Aeson.encode chain)
+
+checkHealth :: Text -> ServerAction RequestResult
+checkHealth = liftIO . HTTP.asyncRequest (Get "/heartbeat") . Text.unpack 
+
+registerAt :: Text -> ServerAction RequestResult
+registerAt peer = do
+  address <- Env.getNodeAddress
+  liftIO $ HTTP.asyncRequest (Post "/peers" (Aeson.encode address)) (Text.unpack peer)
 
